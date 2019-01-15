@@ -67,7 +67,7 @@ class PublishCommand extends Command {
       gitHead,
       gitReset,
       tagVersionPrefix = "v",
-      verifyAccess,
+      verify,
     } = this.options;
 
     if (this.requiresGit && gitHead) {
@@ -81,9 +81,9 @@ class PublishCommand extends Command {
     this.tagPrefix = tagVersionPrefix;
     // TODO: properly inherit from npm-conf
 
-    // inverted boolean options are only respected if prefixed with `--no-`, e.g. `--no-verify-access`
+    // inverted boolean options are only respected if prefixed with `--no-`, e.g. `--no-verify`
     this.gitReset = gitReset !== false;
-    this.verifyAccess = verifyAccess !== false;
+    this.verify = verify !== false;
 
     // consumed by npm-registry-fetch (via libnpmpublish)
     this.npmSession = crypto.randomBytes(8).toString("hex");
@@ -471,7 +471,7 @@ class PublishCommand extends Command {
       return chain;
     }
 
-    if (this.verifyAccess) {
+    if (this.verify) {
       // validate user has valid npm credentials first,
       // by far the most common form of failed execution
       chain = chain.then(() => getNpmUsername(this.conf.snapshot));

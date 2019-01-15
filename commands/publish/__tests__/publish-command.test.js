@@ -285,8 +285,16 @@ Map {
     });
   });
 
-  describe("--no-verify-access", () => {
+  describe("--no-verify", () => {
     it("skips package access verification", async () => {
+      const cwd = await initFixture("normal");
+
+      await lernaPublish(cwd)("--no-verify");
+
+      expect(verifyNpmPackageAccess).not.toHaveBeenCalled();
+    });
+
+    it("accepts deprecated --no-verify-access", async () => {
       const cwd = await initFixture("normal");
 
       await lernaPublish(cwd)("--no-verify-access");

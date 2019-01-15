@@ -86,12 +86,12 @@ exports.builder = yargs => {
       describe: "Create a temporary tag while publishing.",
       type: "boolean",
     },
-    "no-verify-access": {
-      describe: "Do not verify package read-write access for current npm user.",
+    "no-verify": {
+      describe: "Do not verify credentials for logged-in npm user.",
       type: "boolean",
     },
-    "verify-access": {
-      // proxy for --no-verify-access
+    verify: {
+      // proxy for --no-verify
       hidden: true,
       type: "boolean",
     },
@@ -127,6 +127,12 @@ exports.builder = yargs => {
       type: "string",
       requiresArg: true,
     })
+    .option("verify-access", {
+      // TODO: remove in next major release
+      hidden: true,
+      conflicts: "verify",
+      type: "boolean",
+    })
     .option("verify-registry", {
       // TODO: remove in next major release
       hidden: true,
@@ -146,6 +152,13 @@ exports.builder = yargs => {
         delete argv.npmTag;
         delete argv["npm-tag"];
         log.warn("deprecated", "--npm-tag has been renamed --dist-tag");
+      }
+
+      if ("verifyAccess" in argv) {
+        argv.verify = argv.verifyAccess;
+        delete argv.verifyAccess;
+        delete argv["verify-access"];
+        log.warn("deprecated", "--no-verify-access has been renamed --no-verify");
       }
       /* eslint-enable no-param-reassign */
 

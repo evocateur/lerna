@@ -18,6 +18,7 @@ module.exports = compose(
   remap("command.list.includeFilteredDependents", "command.list.includeDependents"),
   remap("command.run.includeFilteredDependencies", "command.run.includeDependencies"),
   remap("command.run.includeFilteredDependents", "command.run.includeDependents"),
+  remap("command.publish.verifyAccess", "command.publish.verify", { alsoRoot: true }),
   remap("command.version.githubRelease", "command.version.createRelease", {
     toValue: value => value && "github",
   }),

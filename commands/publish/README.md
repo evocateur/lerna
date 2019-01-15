@@ -55,7 +55,7 @@ This is useful when a previous `lerna publish` failed to publish all packages to
 - [`--ignore-scripts`](#--ignore-scripts)
 - [`--ignore-prepublish`](#--ignore-prepublish)
 - [`--no-git-reset`](#--no-git-reset)
-- [`--no-verify-access`](#--no-verify-access)
+- [`--no-verify`](#--no-verify)
 - [`--otp`](#--otp)
 - [`--preid`](#--preid)
 - [`--pre-dist-tag <tag>`](#--pre-dist-tag-tag)
@@ -170,11 +170,11 @@ To avoid this, pass `--no-git-reset`. This can be especially useful when used as
 lerna publish --no-git-reset
 ```
 
-### `--no-verify-access`
+### `--no-verify`
 
 By default, `lerna` will verify the logged-in npm user's access to the packages about to be published. Passing this flag will disable that check.
 
-If you are using a third-party registry that does not support `npm access ls-packages`, you will need to pass this flag (or set `command.publish.verifyAccess` to `false` in lerna.json).
+If you are using a third-party registry that does not support `npm access ls-packages`, you will need to pass this flag (or set `command.publish.verify` to `false` in lerna.json).
 
 > Please use with caution
 
@@ -265,6 +265,10 @@ When run with this flag, `lerna publish` will skip all confirmation prompts.
 Useful in [Continuous integration (CI)](https://en.wikipedia.org/wiki/Continuous_integration) to automatically answer the publish confirmation prompt.
 
 ## Deprecated Options
+
+### `--no-verify-access`
+
+This flag has been renamed [`--no-verify`](#--no-verify).
 
 ### `--skip-npm`
 
