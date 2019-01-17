@@ -48,7 +48,7 @@ function filterResultList(pkgList, viewOptions) {
 
   if (viewOptions.isTopological) {
     // allow cycles, output needs to be usable for debugging circularity
-    result = QueryGraph.toposort(result);
+    result = QueryGraph.toposort(result, { rejectCycles: false });
   }
 
   return result;

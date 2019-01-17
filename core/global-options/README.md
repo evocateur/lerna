@@ -37,10 +37,13 @@ Topological sorting can cause concurrency bottlenecks if there are a small numbe
 
 This option can also help if you run multiple "watch" commands. Since `lerna run` will execute commands in topologically sorted order, it can end up waiting for a command before moving on. This will block execution when you run "watch" commands, since they typically never end. An example of a "watch" command is [running `babel` with the `--watch` CLI flag](https://babeljs.io/docs/usage/cli/#babel-compile-files).
 
-### `--reject-cycles`
+### `--no-reject-cycles`
 
-Fail immediately if a cycle is found (in `bootstrap`, `exec`, `publish` or `run`).
+By default, `lerna` will fail immediately when a dependency cycle is found during batched execution.
+Pass `--no-reject-cycles` (or configure the `lerna.json` property `"rejectCycles": false`) to prevent this behavior.
+
+The circular references are still logged as a warning, and in most cases are worth avoiding.
 
 ```sh
-$ lerna bootstrap --reject-cycles
+$ lerna bootstrap --no-reject-cycles
 ```

@@ -211,10 +211,10 @@ describe("ExecCommand", () => {
   });
 
   describe("in a cyclical repo", () => {
-    it("warns when cycles are encountered", async () => {
+    it("warns when cycles are encountered with --no-reject-cycles", async () => {
       const testDir = await initFixture("toposort");
 
-      await lernaExec(testDir)("ls", "--concurrency", "1");
+      await lernaExec(testDir)("ls", "--concurrency", "1", "--no-reject-cycles");
 
       const [logMessage] = loggingOutput("warn");
       expect(logMessage).toMatch("Dependency cycles detected, you should fix these!");
@@ -232,7 +232,14 @@ describe("ExecCommand", () => {
       ]);
     });
 
-    it("throws an error with --reject-cycles", async () => {
+    it("errors by default", async () => {
+      const testDir = await initFixture("toposort");
+      const command = lernaExec(testDir)("ls");
+
+      await expect(command).rejects.toThrow("Dependency cycles detected, you should fix these!");
+    });
+
+    it("accepts backward-compatible --reject-cycles", async () => {
       const testDir = await initFixture("toposort");
       const command = lernaExec(testDir)("ls", "--reject-cycles");
 

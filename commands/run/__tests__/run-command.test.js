@@ -200,10 +200,10 @@ describe("RunCommand", () => {
   });
 
   describe("in a cyclical repo", () => {
-    it("warns when cycles are encountered", async () => {
+    it("warns when cycles are encountered with --no-reject-cycles", async () => {
       const testDir = await initFixture("toposort");
 
-      await lernaRun(testDir)("env", "--concurrency", "1");
+      await lernaRun(testDir)("env", "--concurrency", "1", "--no-reject-cycles");
 
       const [logMessage] = loggingOutput("warn");
       expect(logMessage).toMatch("Dependency cycles detected, you should fix these!");
@@ -219,6 +219,13 @@ describe("RunCommand", () => {
         "package-dag-3",
         "package-cycle-extraneous",
       ]);
+    });
+
+    it("errors by default", async () => {
+      const testDir = await initFixture("toposort");
+      const command = lernaRun(testDir)("env");
+
+      await expect(command).rejects.toThrow("Dependency cycles detected, you should fix these!");
     });
 
     it("works with intersected cycles", async () => {
@@ -247,7 +254,7 @@ describe("RunCommand", () => {
       expect(output.logged().split("\n")).toEqual(["e", "g", "f", "h", "b", "d", "c", "a"]);
     });
 
-    it("should throw an error with --reject-cycles", async () => {
+    it("accepts backward-compatible --reject-cycles", async () => {
       const testDir = await initFixture("toposort");
       const command = lernaRun(testDir)("env", "--reject-cycles");
 

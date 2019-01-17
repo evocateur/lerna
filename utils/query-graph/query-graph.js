@@ -4,9 +4,9 @@ const figgyPudding = require("figgy-pudding");
 const PackageGraph = require("@lerna/package-graph");
 
 const QueryGraphConfig = figgyPudding({
-  "graph-type": {},
+  "graph-type": { default: "allDependencies" },
   graphType: "graph-type",
-  "reject-cycles": {},
+  "reject-cycles": { default: true },
   rejectCycles: "reject-cycles",
 });
 
@@ -15,8 +15,9 @@ class QueryGraph {
    * A mutable PackageGraph used to query for next available packages.
    *
    * @param {Array<Package>} packages An array of Packages to build the graph out of
+   * @param {Object} [opts]
    * @param {String} [opts.graphType="allDependencies"] "dependencies" excludes devDependencies from graph
-   * @param {Boolean} [opts.rejectCycles] Whether or not to reject cycles
+   * @param {Boolean} [opts.rejectCycles=true] Whether or not to reject cycles
    * @constructor
    */
   constructor(packages, opts) {
@@ -76,9 +77,9 @@ module.exports.toposort = toposort;
  * Sort the input list topologically.
  *
  * @param {!Array.<Package>} packages An array of Packages to build the list out of
- * @param {Object} [options]
- * @param {Boolean} options.graphType "allDependencies" or "dependencies", which excludes devDependencies
- * @param {Boolean} options.rejectCycles Whether or not to reject cycles
+ * @param {Object} [opts]
+ * @param {Boolean} opts.graphType "allDependencies" or "dependencies", which excludes devDependencies
+ * @param {Boolean} opts.rejectCycles Whether or not to reject cycles
  *
  * @returns {Array<Package>} a list of Package instances in topological order
  */

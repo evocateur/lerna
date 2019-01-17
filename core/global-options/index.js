@@ -18,16 +18,21 @@ function globalOptions(yargs) {
       type: "number",
       requiresArg: true,
     },
-    "reject-cycles": {
-      describe: "Fail if a cycle is detected among dependencies.",
-      type: "boolean",
-    },
     "no-progress": {
       describe: "Disable progress bars. (Always off in CI)",
       type: "boolean",
     },
     progress: {
       // proxy for --no-progress
+      hidden: true,
+      type: "boolean",
+    },
+    "no-reject-cycles": {
+      describe: "Do not fail if a cycle is detected among dependencies.",
+      type: "boolean",
+    },
+    "reject-cycles": {
+      // proxy for --no-reject-cycles
       hidden: true,
       type: "boolean",
     },
