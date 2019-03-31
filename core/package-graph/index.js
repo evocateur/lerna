@@ -1,15 +1,25 @@
 "use strict";
 
+/** @typedef { import("@lerna/package").Package } Package */
+
 const npa = require("npm-package-arg");
 const semver = require("semver");
 const ValidationError = require("@lerna/validation-error");
 
 /**
- * Represents a node in a PackageGraph.
- * @constructor
- * @param {!<Package>} pkg - A Package object to build the node from.
+ * A node in a PackageGraph.
+ *
+ * @property {String} name
+ * @property {String} location
+ * @property {String} prereleaseId
+ * @property {String} version
+ * @property {Package} pkg
  */
 class PackageGraphNode {
+  /**
+   * @constructor
+   * @param {Package} pkg A Package instance to build the node from.
+   */
   constructor(pkg) {
     Object.defineProperties(this, {
       // immutable properties
@@ -55,9 +65,9 @@ class PackageGraphNode {
 }
 
 /**
- * A PackageGraph.
- * @constructor
- * @param {!Array.<Package>} packages An array of Packages to build the graph out of.
+ * A graph of packages in the current project.
+ *
+ * @param {Array<Package>} packages An array of Packages to build the graph out of.
  * @param {String} graphType ("allDependencies" or "dependencies")
  *    Pass "dependencies" to create a graph of only dependencies,
  *    excluding the devDependencies that would normally be included.
@@ -272,3 +282,5 @@ class PackageGraph extends Map {
 }
 
 module.exports = PackageGraph;
+module.exports.PackageGraph = PackageGraph;
+module.exports.PackageGraphNode = PackageGraphNode;

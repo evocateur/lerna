@@ -5,14 +5,37 @@ const path = require("path");
 const loadJsonFile = require("load-json-file");
 const writePkg = require("write-pkg");
 
+/**
+ * @typedef {Object} PackageJSON
+ * @property {String} name
+ * @property {String} version
+ * @property {Boolean} private
+ * @property {Object | String} [bin]
+ * @property {Object} [scripts]
+ * @property {Object} [dependencies]
+ * @property {Object} [devDependencies]
+ * @property {Object} [optionalDependencies]
+ * @property {Object} [peerDependencies]
+ */
+
 // symbol used to "hide" internal state
 const PKG = Symbol("pkg");
 
+/**
+ * @param {Object} resolved result of npa.resolve()
+ * @param {String} resolved.name name of package
+ * @param {String} [resolved.scope] scope of package
+ * @returns {String} package name minus scope, if present
+ */
 function binSafeName({ name, scope }) {
   return scope ? name.substring(scope.length + 1) : name;
 }
 
-// package.json files are not that complicated, so this is intentionally naïve
+/**
+ * An intentionally naïve shallow clone for package.json content.
+ * @param {PackageJSON} json original value to clone
+ * @returns {Object} shallowly-cloned JSON
+ */
 function shallowCopy(json) {
   return Object.keys(json).reduce((obj, key) => {
     const val = json[key];
@@ -30,39 +53,93 @@ function shallowCopy(json) {
   }, {});
 }
 
+/**
+ * Lerna's internal representation of a local package, with
+ * many values resolved directly from the original JSON
+ * @property {String} name
+ * @property {String} version
+ * @property {String} location
+ * @property {Boolean} private
+ * @property {Object} resolved
+ * @property {String} rootPath
+ * @property {Object | String} bin
+ * @property {Object} scripts
+ * @property {Object} dependencies
+ * @property {Object} devDependencies
+ * @property {Object} optionalDependencies
+ * @property {Object} peerDependencies
+ * @property {String} binLocation
+ * @property {String} manifestLocation
+ * @property {String} nodeModulesLocation
+ * @property {String} __isLernaPackage
+ */
 class Package {
+  /**
+   * @param {PackageJSON} pkg Original package.json object
+   * @param {String} location Absolute path to leaf directory
+   * @param {String} rootPath Absolute path to repository root
+   */
   constructor(pkg, location, rootPath = location) {
     // npa will throw an error if the name is invalid
     const resolved = npa.resolve(pkg.name, `file:${path.relative(rootPath, location)}`, rootPath);
 
     Object.defineProperties(this, {
-      // read-only
+      /**
+       * @property {String} name
+       * @readonly
+       */
       name: {
         enumerable: true,
         value: pkg.name,
       },
+      /**
+       * @property {String} location
+       * @readonly
+       */
       location: {
         value: location,
       },
+      /**
+       * @property {Boolean} private
+       * @readonly
+       */
       private: {
         value: Boolean(pkg.private),
       },
+      /**
+       * @property {npa.FileResult | npa.HostedGitResult | npa.RegistryResult} resolved
+       * @readonly
+       */
       resolved: {
         value: resolved,
       },
+      /**
+       * @property {String} rootPath
+       * @readonly
+       */
       rootPath: {
         value: rootPath,
       },
-      // internal state is "private"
+      /**
+       * @property {PackageJSON} PKG
+       * @private
+       */
       [PKG]: {
         configurable: true,
         value: pkg,
       },
-      // safer than instanceof across module boundaries
+      /**
+       * safer comparison than instanceof across module boundaries
+       * @property {Boolean} __isLernaPackage
+       * @readonly
+       */
       __isLernaPackage: {
         value: true,
       },
-      // immutable
+      /**
+       * @property {Object<String, String>} bin
+       * @readonly
+       */
       bin: {
         value:
           typeof pkg.bin === "string"
@@ -71,15 +148,31 @@ class Package {
               }
             : Object.assign({}, pkg.bin),
       },
+      /**
+       * @property {Object<String, String>} scripts
+       * @readonly
+       */
       scripts: {
         value: Object.assign({}, pkg.scripts),
       },
+      /**
+       * @property {String} manifestLocation
+       * @readonly
+       */
       manifestLocation: {
         value: path.join(location, "package.json"),
       },
+      /**
+       * @property {String} nodeModulesLocation
+       * @readonly
+       */
       nodeModulesLocation: {
         value: path.join(location, "node_modules"),
       },
+      /**
+       * @property {String} binLocation
+       * @readonly
+       */
       binLocation: {
         value: path.join(location, "node_modules", ".bin"),
       },
@@ -87,12 +180,13 @@ class Package {
   }
 
   // accessors
+  /** @type {String} */
   get version() {
     return this[PKG].version;
   }
 
   set version(version) {
-    this[PKG].version = version;
+    this[PKG].version = /** @type {String} */ version;
   }
 
   // "live" collections
@@ -209,6 +303,12 @@ class Package {
   }
 }
 
+/**
+ * A lazy Package factory
+ * @param {String | Package | Object} ref Path to directory, Package instance, or raw JSON
+ * @param {String} [dir="."] Directory used when raw JSON passed as first argument
+ * @returns {Package} the original instance, or new instance from raw arguments
+ */
 function lazy(ref, dir = ".") {
   if (typeof ref === "string") {
     const location = path.resolve(path.basename(ref) === "package.json" ? path.dirname(ref) : ref);
@@ -227,4 +327,5 @@ function lazy(ref, dir = ".") {
 }
 
 module.exports = Package;
+module.exports.Package = Package;
 module.exports.lazy = lazy;

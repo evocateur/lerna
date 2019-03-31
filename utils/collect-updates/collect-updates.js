@@ -1,5 +1,8 @@
 "use strict";
 
+/** @typedef { import("@lerna/package").Package } Package */
+/** @typedef { import("@lerna/package-graph").PackageGraph } PackageGraph */
+
 const log = require("npmlog");
 const describeRef = require("@lerna/describe-ref");
 
@@ -10,6 +13,28 @@ const makeDiffPredicate = require("./lib/make-diff-predicate");
 
 module.exports = collectUpdates;
 
+/**
+ * Create a list of packages that have changed since the last tagged release.
+ *
+ * @param {Array<Package>} filteredPackages List of packages to check for updates
+ * @param {PackageGraph} packageGraph The package graph of the current project
+ * @param {Object} execOpts A config object passed to subprocess executions
+ * @param {String} execOpts.cwd Current working directory
+ * @param {Object} commandOptions A command-specific config object
+ * @param {String} [commandOptions.bump] The semver bump keyword (patch/minor/major) or explicit version used
+ * @param {Boolean} [commandOptions.canary] Whether or not to use a "nightly" range (`ref^..ref`) for commits
+ * @param {Array<String>} [commandOptions.ignoreChanges=[]]
+ *  A list of globs that match files/directories whose changes
+ *  should not be considered when identifying changed packages
+ * @param {Boolean} [commandOptions.includeMergedTags]
+ *  Whether or not to include the --first-parent flag when calling `git describe`
+ *  (awkwardly, pass `true` to _omit_ the flag, the default is to include it)
+ * @param {Boolean | Array<String>} [commandOptions.forcePublish] Which packages, if any, to always include
+ *  Force all packages to be versioned with `true`, or pass a list of globs that match package names
+ * @param {String} [commandOptions.since] Ref to use when querying git, defaults to most recent annotated tag
+ *
+ * @returns {Array<PackageGraphNode>} a list of updated package graph nodes
+ */
 function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions) {
   const forced = getForcedPackages(commandOptions.forcePublish);
   const packages =
