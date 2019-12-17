@@ -22,7 +22,7 @@ const FilterConfig = figgyPudding({
   log: { default: npmlog },
 });
 
-function getFilteredPackages(packageGraph, execOpts, opts) {
+function getFilteredPackages(packageGraph, execOpts, opts, independentVersions) {
   const options = FilterConfig(opts);
 
   if (options.scope) {
@@ -57,7 +57,9 @@ function getFilteredPackages(packageGraph, execOpts, opts) {
     }
 
     chain = chain.then(filteredPackages =>
-      Promise.resolve(collectUpdates(filteredPackages, packageGraph, execOpts, opts)).then(updates => {
+      Promise.resolve(
+        collectUpdates(filteredPackages, packageGraph, execOpts, opts, independentVersions)
+      ).then(updates => {
         const updated = new Set(updates.map(({ pkg }) => pkg.name));
 
         return filteredPackages.filter(pkg => updated.has(pkg.name));

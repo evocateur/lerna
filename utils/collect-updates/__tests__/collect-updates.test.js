@@ -77,7 +77,7 @@ describe("collectUpdates()", () => {
       }),
     ]);
     expect(hasTags).toHaveBeenLastCalledWith(expect.figgyPudding(execOpts));
-    expect(describeRef.sync).toHaveBeenLastCalledWith(execOpts, undefined);
+    expect(describeRef.sync).toHaveBeenLastCalledWith(expect.figgyPudding(execOpts));
     expect(makeDiffPredicate).toHaveBeenLastCalledWith("v1.0.0", expect.figgyPudding(execOpts));
   });
 

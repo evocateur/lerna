@@ -39,7 +39,9 @@ class RunCommand extends Command {
 
     let chain = Promise.resolve();
 
-    chain = chain.then(() => getFilteredPackages(this.packageGraph, this.execOpts, this.options));
+    chain = chain.then(() =>
+      getFilteredPackages(this.packageGraph, this.execOpts, this.options, this.project.isIndependent())
+    );
     chain = chain.then(filteredPackages => {
       this.packagesWithScript =
         script === "env"

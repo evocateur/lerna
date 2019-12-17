@@ -19,7 +19,7 @@ function getCurrentTags(execOpts, matchingPattern) {
     .then(result => {
       const lines = result.stdout.split("\n").filter(Boolean);
 
-      if (matchingPattern === "*@*") {
+      if (matchingPattern === "*@*.*.*") {
         // independent mode does not respect tagVersionPrefix,
         // but embeds the package name in the tag "prefix"
         return lines.map(tag => npa(tag).name);

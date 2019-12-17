@@ -7,11 +7,13 @@ const describeRef = require("@lerna/describe-ref");
 const hasTags = require("./lib/has-tags");
 const collectPackages = require("./lib/collect-packages");
 const getPackagesForOption = require("./lib/get-packages-for-option");
+const { getTagMatchGlob } = require("./lib/get-tag-match-glob");
 const makeDiffPredicate = require("./lib/make-diff-predicate");
 
 module.exports = collectUpdates;
 module.exports.collectPackages = collectPackages;
 module.exports.getPackagesForOption = getPackagesForOption;
+module.exports.getTagMatchGlob = getTagMatchGlob;
 
 const UpdateCollectorOptions = figgyPudding(
   {
@@ -20,15 +22,16 @@ const UpdateCollectorOptions = figgyPudding(
     conventionalCommits: {},
     conventionalGraduate: {},
     forcePublish: {},
-    includeMergedTags: {},
     since: {},
     // remaining fields are specified by child puddings
     // excludeDependents: {},
+    // includeMergedTags: {},
     // ignoreChanges: {},
     // cwd: {},
   },
   {
     other:
+      // istanbul ignore next
       process.env.NODE_ENV !== "test"
         ? null
         : key =>
@@ -36,13 +39,12 @@ const UpdateCollectorOptions = figgyPudding(
             key === "asymmetricMatch" ||
             // allow child pudding property access in tests
             key === "cwd" ||
-            key === "excludeDependents" ||
             key === "ignoreChanges",
   }
 );
 
-function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions) {
-  const options = UpdateCollectorOptions(commandOptions, execOpts);
+function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions, independentVersions) {
+  const options = UpdateCollectorOptions(commandOptions, execOpts, { independentVersions });
 
   // If --conventional-commits and --conventional-graduate are both set, ignore --force-publish
   const useConventionalGraduate = options.conventionalCommits && options.conventionalGraduate;
@@ -59,7 +61,11 @@ function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions
 
   if (hasTags(options)) {
     // describe the last annotated tag in the current branch
-    const { sha, refCount, lastTagName } = describeRef.sync(execOpts, options.includeMergedTags);
+    const { sha, refCount, lastTagName } = describeRef.sync(
+      options.concat({
+        match: getTagMatchGlob(options),
+      })
+    );
     // TODO: warn about dirty tree?
 
     if (refCount === "0" && forced.size === 0 && !committish) {

@@ -99,14 +99,15 @@ test("--since returns all packages if no tag is found", async () => {
   const execOpts = { cwd };
   const options = parseOptions("--since");
 
-  const result = await getFilteredPackages(packageGraph, execOpts, options);
+  const result = await getFilteredPackages(packageGraph, execOpts, options, false);
 
   expect(result).toHaveLength(5);
   expect(collectUpdates).toHaveBeenLastCalledWith(
     expect.any(Array),
     packageGraph,
     execOpts,
-    expect.objectContaining({ since: "" })
+    expect.objectContaining({ since: "" }),
+    false /* this.project.isIndependent() */
   );
 });
 
@@ -129,14 +130,15 @@ test("--since <ref> should return packages updated since <ref>", async () => {
   const execOpts = { cwd };
   const options = parseOptions("--since", "deadbeef");
 
-  const result = await getFilteredPackages(packageGraph, execOpts, options);
+  const result = await getFilteredPackages(packageGraph, execOpts, options, true);
 
   expect(result.map(node => node.name)).toEqual(["package-1", "package-2", "package-3"]);
   expect(collectUpdates).toHaveBeenLastCalledWith(
     expect.any(Array),
     packageGraph,
     execOpts,
-    expect.objectContaining({ since: "deadbeef" })
+    expect.objectContaining({ since: "deadbeef" }),
+    true /* this.project.isIndependent() */
   );
 });
 
@@ -155,7 +157,8 @@ test("--scope package-{2,3,4} --since master", async () => {
     [2, 3, 4].map(n => packageGraph.get(`package-${n}`).pkg),
     packageGraph,
     execOpts,
-    expect.objectContaining({ since: "master" })
+    expect.objectContaining({ since: "master" }),
+    undefined /* this.project.isIndependent() */
   );
 });
 
@@ -170,7 +173,8 @@ test("--exclude-dependents", async () => {
     expect.any(Array),
     packageGraph,
     execOpts,
-    expect.objectContaining({ excludeDependents: true })
+    expect.objectContaining({ excludeDependents: true }),
+    undefined /* this.project.isIndependent() */
   );
 });
 

@@ -19,7 +19,9 @@ class ListCommand extends Command {
   initialize() {
     let chain = Promise.resolve();
 
-    chain = chain.then(() => getFilteredPackages(this.packageGraph, this.execOpts, this.options));
+    chain = chain.then(() =>
+      getFilteredPackages(this.packageGraph, this.execOpts, this.options, this.project.isIndependent())
+    );
     chain = chain.then(filteredPackages => {
       this.result = listable.format(filteredPackages, this.options);
     });

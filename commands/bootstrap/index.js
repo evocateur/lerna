@@ -134,7 +134,7 @@ class BootstrapCommand extends Command {
     let chain = Promise.resolve();
 
     chain = chain.then(() => {
-      return getFilteredPackages(this.targetGraph, this.execOpts, this.options);
+      return getFilteredPackages(this.targetGraph, this.execOpts, this.options, this.project.isIndependent());
     });
 
     chain = chain.then(filteredPackages => {

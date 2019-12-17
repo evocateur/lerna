@@ -66,7 +66,6 @@ class PublishCommand extends Command {
       exact,
       gitHead,
       gitReset,
-      tagVersionPrefix = "v",
       verifyAccess,
     } = this.options;
 
@@ -77,9 +76,12 @@ class PublishCommand extends Command {
     // https://docs.npmjs.com/misc/config#save-prefix
     this.savePrefix = exact ? "" : "^";
 
-    // https://docs.npmjs.com/misc/config#tag-version-prefix
-    this.tagPrefix = tagVersionPrefix;
-    // TODO: properly inherit from npm-conf
+    // used to discriminate Lerna-generated tags from those created externally
+    this.tagMatchGlob = collectUpdates.getTagMatchGlob({
+      independentVersions: this.project.isIndependent(),
+      // https://docs.npmjs.com/misc/config#tag-version-prefix
+      tagVersionPrefix: this.options.tagVersionPrefix,
+    });
 
     // inverted boolean options are only respected if prefixed with `--no-`, e.g. `--no-verify-access`
     this.gitReset = gitReset !== false;
@@ -251,14 +253,12 @@ class PublishCommand extends Command {
   }
 
   detectFromGit() {
-    const matchingPattern = this.project.isIndependent() ? "*@*" : `${this.tagPrefix}*.*.*`;
-
     let chain = Promise.resolve();
 
     // attempting to publish a tagged release with local changes is not allowed
     chain = chain.then(() => this.verifyWorkingTreeClean());
 
-    chain = chain.then(() => getCurrentTags(this.execOpts, matchingPattern));
+    chain = chain.then(() => getCurrentTags(this.execOpts, this.tagMatchGlob));
     chain = chain.then(taggedPackageNames => {
       if (!taggedPackageNames.length) {
         this.logger.notice("from-git", "No tagged release found");
@@ -341,13 +341,19 @@ class PublishCommand extends Command {
 
     // find changed packages since last release, if any
     chain = chain.then(() =>
-      collectUpdates(this.packageGraph.rawPackageList, this.packageGraph, this.execOpts, {
-        bump: "prerelease",
-        canary: true,
-        ignoreChanges,
-        forcePublish,
-        includeMergedTags,
-      })
+      collectUpdates(
+        this.packageGraph.rawPackageList,
+        this.packageGraph,
+        this.execOpts,
+        {
+          bump: "prerelease",
+          canary: true,
+          ignoreChanges,
+          forcePublish,
+          includeMergedTags,
+        },
+        this.project.isIndependent()
+      )
     );
 
     const makeVersion = ({ lastVersion, refCount, sha }) => {
@@ -363,13 +369,11 @@ class PublishCommand extends Command {
       // each package is described against its tags only
       chain = chain.then(updates =>
         pMap(updates, ({ pkg }) =>
-          describeRef(
-            {
-              match: `${pkg.name}@*`,
-              cwd,
-            },
-            includeMergedTags
-          )
+          describeRef({
+            match: `${pkg.name}@*`,
+            cwd,
+            includeMergedTags,
+          })
             .then(({ lastVersion = pkg.version, refCount, sha }) =>
               // an unpublished package will have no reachable git tag
               makeVersion({ lastVersion, refCount, sha })
@@ -383,13 +387,11 @@ class PublishCommand extends Command {
     } else {
       // all packages are described against the last tag
       chain = chain.then(updates =>
-        describeRef(
-          {
-            match: `${this.tagPrefix}*.*.*`,
-            cwd,
-          },
-          includeMergedTags
-        )
+        describeRef({
+          match: this.tagMatchGlob,
+          cwd,
+          includeMergedTags,
+        })
           .then(makeVersion)
           .then(version => updates.map(({ pkg }) => [pkg.name, version]))
           .then(updatesVersions => ({

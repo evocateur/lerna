@@ -70,7 +70,9 @@ class AddCommand extends Command {
       this.spec.version = version;
     });
 
-    chain = chain.then(() => getFilteredPackages(this.packageGraph, this.execOpts, this.options));
+    chain = chain.then(() =>
+      getFilteredPackages(this.packageGraph, this.execOpts, this.options, this.project.isIndependent())
+    );
     chain = chain.then(filteredPackages => {
       this.filteredPackages = filteredPackages;
     });

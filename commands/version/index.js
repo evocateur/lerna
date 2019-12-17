@@ -189,7 +189,8 @@ class VersionCommand extends Command {
       this.packageGraph.rawPackageList,
       this.packageGraph,
       this.execOpts,
-      this.options
+      this.options,
+      this.project.isIndependent()
     ).filter(node => {
       if (!node.version) {
         // a package may be unversioned only if it is private

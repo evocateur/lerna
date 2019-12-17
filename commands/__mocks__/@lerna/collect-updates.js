@@ -1,6 +1,8 @@
 "use strict";
 
-const { collectPackages, getPackagesForOption } = jest.requireActual("@lerna/collect-updates");
+const { collectPackages, getPackagesForOption, getTagMatchGlob } = jest.requireActual(
+  "@lerna/collect-updates"
+);
 
 // collectUpdates.setUpdated(cwd, packageNames...)
 // otherwise, enables everything
@@ -24,3 +26,4 @@ module.exports = mockCollectUpdates;
 module.exports.setUpdated = setUpdated;
 module.exports.collectPackages = collectPackages;
 module.exports.getPackagesForOption = getPackagesForOption;
+module.exports.getTagMatchGlob = getTagMatchGlob;

@@ -57,7 +57,8 @@ package-4
       expect.any(Array),
       expect.any(Object),
       expect.objectContaining({ cwd }),
-      expect.objectContaining({ forcePublish: true })
+      expect.objectContaining({ forcePublish: true }),
+      false
     );
   });
 
@@ -68,7 +69,8 @@ package-4
       expect.any(Array),
       expect.any(Object),
       expect.objectContaining({ cwd }),
-      expect.objectContaining({ ignoreChanges: ["**/cli-ignore"] })
+      expect.objectContaining({ ignoreChanges: ["**/cli-ignore"] }),
+      false
     );
   });
 
@@ -87,7 +89,8 @@ package-4
       expect.any(Array),
       expect.any(Object),
       expect.objectContaining({ cwd }),
-      expect.objectContaining({ ignoreChanges: ["**/durable-ignore"] })
+      expect.objectContaining({ ignoreChanges: ["**/durable-ignore"] }),
+      false
     );
   });
 
@@ -98,7 +101,8 @@ package-4
       expect.any(Array),
       expect.any(Object),
       expect.objectContaining({ cwd }),
-      expect.objectContaining({ includeMergedTags: true })
+      expect.objectContaining({ includeMergedTags: true }),
+      false
     );
   });
 
@@ -109,7 +113,8 @@ package-4
       expect.any(Array),
       expect.any(Object),
       expect.objectContaining({ cwd }),
-      expect.objectContaining({ conventionalGraduate: "*", conventionalCommits: true })
+      expect.objectContaining({ conventionalGraduate: "*", conventionalCommits: true }),
+      false
     );
   });
 

@@ -140,7 +140,8 @@ __TEST_ROOTDIR__/packages/package-5:package-5:1.0.0:PRIVATE
         expect.any(Array),
         expect.any(Map),
         expect.any(Object),
-        expect.objectContaining({ since: "deadbeef" })
+        expect.objectContaining({ since: "deadbeef" }),
+        false
       );
     });
   });

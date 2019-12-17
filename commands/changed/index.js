@@ -31,7 +31,8 @@ class ChangedCommand extends Command {
       this.packageGraph.rawPackageList,
       this.packageGraph,
       this.execOpts,
-      this.options
+      this.options,
+      this.project.isIndependent()
     );
 
     this.result = listable.format(
