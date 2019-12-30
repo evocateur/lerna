@@ -1,13 +1,23 @@
 "use strict";
 
 const log = require("npmlog");
+const figgyPudding = require("figgy-pudding");
 const childProcess = require("@lerna/child-process");
 
 module.exports = describeRef;
 module.exports.parse = parse;
 module.exports.sync = sync;
 
-function getArgs(options, includeMergedTags) {
+const DescribeRefOptions = figgyPudding({
+  /** string */
+  cwd: {},
+  /** boolean */
+  includeMergedTags: {},
+  /** string */
+  match: {},
+});
+
+function getArgs(options) {
   let args = [
     "describe",
     // fallback to short sha if no tags located
@@ -24,7 +34,7 @@ function getArgs(options, includeMergedTags) {
     args.push("--match", options.match);
   }
 
-  if (includeMergedTags) {
+  if (options.includeMergedTags) {
     // we want to consider all tags, also from merged branches
     args = args.filter(arg => arg !== "--first-parent");
   }
@@ -32,21 +42,23 @@ function getArgs(options, includeMergedTags) {
   return args;
 }
 
-function describeRef(options = {}, includeMergedTags) {
-  const promise = childProcess.exec("git", getArgs(options, includeMergedTags), options);
+function describeRef(opts, includeMergedTags) {
+  const options = DescribeRefOptions(opts, { includeMergedTags });
+  const promise = childProcess.exec("git", getArgs(options), { cwd: options.cwd });
 
   return promise.then(({ stdout }) => {
     const result = parse(stdout, options);
 
-    log.verbose("git-describe", "%j => %j", options && options.match, stdout);
+    log.verbose("git-describe", "%j => %j", options.match, stdout);
     log.silly("git-describe", "parsed => %j", result);
 
     return result;
   });
 }
 
-function sync(options = {}, includeMergedTags) {
-  const stdout = childProcess.execSync("git", getArgs(options, includeMergedTags), options);
+function sync(opts, includeMergedTags) {
+  const options = DescribeRefOptions(opts, { includeMergedTags });
+  const stdout = childProcess.execSync("git", getArgs(options), { cwd: options.cwd });
   const result = parse(stdout, options);
 
   // only called by collect-updates with no matcher
@@ -57,13 +69,14 @@ function sync(options = {}, includeMergedTags) {
 
 function parse(stdout, options = {}) {
   const minimalShaRegex = /^([0-9a-f]{7,40})(-dirty)?$/;
+
   // when git describe fails to locate tags, it returns only the minimal sha
   if (minimalShaRegex.test(stdout)) {
     // repo might still be dirty
     const [, sha, isDirty] = minimalShaRegex.exec(stdout);
 
     // count number of commits since beginning of time
-    const refCount = childProcess.execSync("git", ["rev-list", "--count", sha], options);
+    const refCount = childProcess.execSync("git", ["rev-list", "--count", sha], { cwd: options.cwd });
 
     return { refCount, sha, isDirty: Boolean(isDirty) };
   }

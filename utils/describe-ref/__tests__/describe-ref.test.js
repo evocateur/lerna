@@ -38,7 +38,8 @@ describe("describeRef()", () => {
     expect(childProcess.exec).toHaveBeenLastCalledWith(
       "git",
       DEFAULT_ARGS.concat(["--match", "v*.*.*"]),
-      options
+      // always passed explicitly
+      { cwd: undefined }
     );
   });
 
@@ -47,9 +48,11 @@ describe("describeRef()", () => {
 
     await describeRef({}, includeMergedTags);
 
-    const newArgs = [...DEFAULT_ARGS];
-    newArgs.pop();
-    expect(childProcess.exec).toHaveBeenLastCalledWith("git", newArgs, {});
+    expect(childProcess.exec).toHaveBeenLastCalledWith(
+      "git",
+      ["describe", "--always", "--long", "--dirty" /* , "--first-parent" */],
+      {}
+    );
   });
 });
 
@@ -81,7 +84,8 @@ describe("describeRef.sync()", () => {
     expect(childProcess.execSync).toHaveBeenLastCalledWith(
       "git",
       DEFAULT_ARGS.concat(["--match", "v*.*.*"]),
-      options
+      // always passed explicitly
+      { cwd: undefined }
     );
   });
 });
