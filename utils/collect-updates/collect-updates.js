@@ -1,6 +1,7 @@
 "use strict";
 
 const log = require("npmlog");
+const figgyPudding = require("figgy-pudding");
 const describeRef = require("@lerna/describe-ref");
 
 const hasTags = require("./lib/has-tags");
@@ -12,23 +13,53 @@ module.exports = collectUpdates;
 module.exports.collectPackages = collectPackages;
 module.exports.getPackagesForOption = getPackagesForOption;
 
+const UpdateCollectorOptions = figgyPudding(
+  {
+    bump: {},
+    canary: {},
+    conventionalCommits: {},
+    conventionalGraduate: {},
+    forcePublish: {},
+    includeMergedTags: {},
+    since: {},
+    // remaining fields are specified by child puddings
+    // excludeDependents: {},
+    // ignoreChanges: {},
+    // cwd: {},
+  },
+  {
+    other:
+      process.env.NODE_ENV !== "test"
+        ? null
+        : key =>
+            // jest asymmetric matchers explode otherwise
+            key === "asymmetricMatch" ||
+            // allow child pudding property access in tests
+            key === "cwd" ||
+            key === "excludeDependents" ||
+            key === "ignoreChanges",
+  }
+);
+
 function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions) {
-  const { forcePublish, conventionalCommits, conventionalGraduate, excludeDependents } = commandOptions;
+  const options = UpdateCollectorOptions(commandOptions, execOpts);
 
   // If --conventional-commits and --conventional-graduate are both set, ignore --force-publish
-  const useConventionalGraduate = conventionalCommits && conventionalGraduate;
-  const forced = getPackagesForOption(useConventionalGraduate ? conventionalGraduate : forcePublish);
+  const useConventionalGraduate = options.conventionalCommits && options.conventionalGraduate;
+  const forced = getPackagesForOption(
+    useConventionalGraduate ? options.conventionalGraduate : options.forcePublish
+  );
 
   const packages =
     filteredPackages.length === packageGraph.size
       ? packageGraph
       : new Map(filteredPackages.map(({ name }) => [name, packageGraph.get(name)]));
 
-  let committish = commandOptions.since;
+  let committish = options.since;
 
-  if (hasTags(execOpts)) {
+  if (hasTags(options)) {
     // describe the last annotated tag in the current branch
-    const { sha, refCount, lastTagName } = describeRef.sync(execOpts, commandOptions.includeMergedTags);
+    const { sha, refCount, lastTagName } = describeRef.sync(execOpts, options.includeMergedTags);
     // TODO: warn about dirty tree?
 
     if (refCount === "0" && forced.size === 0 && !committish) {
@@ -38,7 +69,7 @@ function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions
       return [];
     }
 
-    if (commandOptions.canary) {
+    if (options.canary) {
       // if it's a merge commit, it will return all the commits that were part of the merge
       // ex: If `ab7533e` had 2 commits, ab7533e^..ab7533e would contain 2 commits + the merge commit
       committish = `${sha}^..${sha}`;
@@ -67,26 +98,30 @@ function collectUpdates(filteredPackages, packageGraph, execOpts, commandOptions
     // --force-publish or no tag
     log.info("", "Assuming all packages changed");
 
-    return collectPackages(packages, {
-      onInclude: name => log.verbose("updated", name),
-      excludeDependents,
-    });
+    return collectPackages(
+      packages,
+      options.concat({
+        onInclude: name => log.verbose("updated", name),
+      })
+    );
   }
 
   log.info("", `Looking for changed packages since ${committish}`);
 
-  const hasDiff = makeDiffPredicate(committish, execOpts, commandOptions.ignoreChanges);
+  const hasDiff = makeDiffPredicate(committish, options);
   const needsBump =
-    !commandOptions.bump || commandOptions.bump.startsWith("pre")
+    !options.bump || options.bump.startsWith("pre")
       ? () => false
       : /* skip packages that have not been previously prereleased */
         node => node.prereleaseId;
   const isForced = (node, name) =>
     (forced.has("*") || forced.has(name)) && (useConventionalGraduate ? node.prereleaseId : true);
 
-  return collectPackages(packages, {
-    isCandidate: (node, name) => isForced(node, name) || needsBump(node) || hasDiff(node),
-    onInclude: name => log.verbose("updated", name),
-    excludeDependents,
-  });
+  return collectPackages(
+    packages,
+    options.concat({
+      isCandidate: (node, name) => isForced(node, name) || needsBump(node) || hasDiff(node),
+      onInclude: name => log.verbose("updated", name),
+    })
+  );
 }

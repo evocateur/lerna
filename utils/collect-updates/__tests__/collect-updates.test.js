@@ -17,6 +17,8 @@ const buildGraph = require("../__helpers__/build-graph");
 // file under test
 const collectUpdates = require("..");
 
+expect.extend(require("@lerna-test/figgy-pudding-matchers"));
+
 // default mock implementations
 describeRef.sync.mockReturnValue({
   lastTagName: "v1.0.0",
@@ -74,9 +76,9 @@ describe("collectUpdates()", () => {
         name: "package-standalone",
       }),
     ]);
-    expect(hasTags).toHaveBeenLastCalledWith(execOpts);
+    expect(hasTags).toHaveBeenLastCalledWith(expect.figgyPudding(execOpts));
     expect(describeRef.sync).toHaveBeenLastCalledWith(execOpts, undefined);
-    expect(makeDiffPredicate).toHaveBeenLastCalledWith("v1.0.0", execOpts, undefined);
+    expect(makeDiffPredicate).toHaveBeenLastCalledWith("v1.0.0", expect.figgyPudding(execOpts));
   });
 
   it("returns changed node and their dependents", () => {
@@ -351,7 +353,7 @@ describe("collectUpdates()", () => {
       expect.objectContaining({ name: "package-dag-2a" }),
       expect.objectContaining({ name: "package-dag-3" }),
     ]);
-    expect(makeDiffPredicate).toHaveBeenLastCalledWith("deadbeef^..deadbeef", execOpts, undefined);
+    expect(makeDiffPredicate).toHaveBeenLastCalledWith("deadbeef^..deadbeef", expect.figgyPudding(execOpts));
   });
 
   it("uses revision provided by --since <ref>", () => {
@@ -363,7 +365,7 @@ describe("collectUpdates()", () => {
       since: "beefcafe",
     });
 
-    expect(makeDiffPredicate).toHaveBeenLastCalledWith("beefcafe", execOpts, undefined);
+    expect(makeDiffPredicate).toHaveBeenLastCalledWith("beefcafe", expect.figgyPudding(execOpts));
   });
 
   it("does not exit early on tagged release when --since <ref> is passed", () => {
@@ -398,6 +400,9 @@ describe("collectUpdates()", () => {
       ignoreChanges: ["**/README.md"],
     });
 
-    expect(makeDiffPredicate).toHaveBeenLastCalledWith("v1.0.0", execOpts, ["**/README.md"]);
+    expect(makeDiffPredicate).toHaveBeenLastCalledWith(
+      "v1.0.0",
+      expect.figgyPudding({ cwd: "/test", ignoreChanges: ["**/README.md"] })
+    );
   });
 });

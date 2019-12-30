@@ -1,10 +1,18 @@
 "use strict";
 
+const figgyPudding = require("figgy-pudding");
 const collectDependents = require("./collect-dependents");
 
 module.exports = collectPackages;
 
-function collectPackages(packages, { isCandidate = () => true, onInclude, excludeDependents } = {}) {
+const PackageCollectorOptions = figgyPudding({
+  isCandidate: {},
+  onInclude: {},
+  excludeDependents: {},
+});
+
+function collectPackages(packages, opts) {
+  const { isCandidate = () => true, onInclude, excludeDependents } = PackageCollectorOptions(opts);
   const candidates = new Set();
 
   packages.forEach((node, name) => {

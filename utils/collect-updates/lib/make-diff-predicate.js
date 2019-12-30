@@ -1,6 +1,7 @@
 "use strict";
 
 const childProcess = require("@lerna/child-process");
+const figgyPudding = require("figgy-pudding");
 const log = require("npmlog");
 const minimatch = require("minimatch");
 const path = require("path");
@@ -8,7 +9,14 @@ const slash = require("slash");
 
 module.exports = makeDiffPredicate;
 
-function makeDiffPredicate(committish, execOpts, ignorePatterns = []) {
+const PredicateOptions = figgyPudding({
+  cwd: {},
+  ignoreChanges: { default: [] },
+  ignorePatterns: "ignoreChanges",
+});
+
+function makeDiffPredicate(committish, opts) {
+  const { cwd, ignorePatterns } = PredicateOptions(opts);
   const ignoreFilters = new Set(
     ignorePatterns.map(p =>
       minimatch.filter(`!${p}`, {
@@ -24,7 +32,7 @@ function makeDiffPredicate(committish, execOpts, ignorePatterns = []) {
   }
 
   return function hasDiffSinceThatIsntIgnored(node) {
-    const diff = diffSinceIn(committish, node.location, execOpts);
+    const diff = diffSinceIn(committish, node.location, cwd);
 
     if (diff === "") {
       log.silly("", "no diff found in %s", node.name);
@@ -50,9 +58,9 @@ function makeDiffPredicate(committish, execOpts, ignorePatterns = []) {
   };
 }
 
-function diffSinceIn(committish, location, opts) {
+function diffSinceIn(committish, location, cwd) {
   const args = ["diff", "--name-only", committish];
-  const formattedLocation = slash(path.relative(opts.cwd, location));
+  const formattedLocation = slash(path.relative(cwd, location));
 
   if (formattedLocation) {
     // avoid same-directory path.relative() === ""
@@ -60,5 +68,5 @@ function diffSinceIn(committish, location, opts) {
   }
 
   log.silly("checking diff", formattedLocation);
-  return childProcess.execSync("git", args, opts);
+  return childProcess.execSync("git", args, { cwd });
 }

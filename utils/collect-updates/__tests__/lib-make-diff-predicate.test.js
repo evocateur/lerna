@@ -65,7 +65,7 @@ test("ignore changes (globstars)", () => {
     "packages/pkg-2/examples/and-another-thing/package.json",
   ]);
 
-  const hasDiff = makeDiffPredicate("v1.0.0", { cwd: "/test" }, ["**/examples/**", "*.md"]);
+  const hasDiff = makeDiffPredicate("v1.0.0", { cwd: "/test", ignoreChanges: ["**/examples/**", "*.md"] });
   const result = hasDiff({
     location: "/test/packages/pkg-2",
   });
@@ -76,7 +76,7 @@ test("ignore changes (globstars)", () => {
 test("ignore changes (match base)", () => {
   setup("packages/pkg-3/README.md");
 
-  const hasDiff = makeDiffPredicate("v1.0.0", { cwd: "/test" }, ["*.md"]);
+  const hasDiff = makeDiffPredicate("v1.0.0", { cwd: "/test", ignoreChanges: ["*.md"] });
   const result = hasDiff({
     location: "/test/packages/pkg-3",
   });
