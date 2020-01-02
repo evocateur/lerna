@@ -13,10 +13,12 @@ const ValidationError = require("@lerna/validation-error");
 const cleanStack = require("./lib/clean-stack");
 const defaultOptions = require("./lib/default-options");
 const { isGitInitialized } = require("./lib/is-git-initialized");
+const { isGitVersionSatisfied } = require("./lib/is-git-version-satisfied");
 const logPackageError = require("./lib/log-package-error");
 const warnIfHanging = require("./lib/warn-if-hanging");
 
 const DEFAULT_CONCURRENCY = os.cpus().length;
+const MINIMUM_GIT_VERSION = "2.1.4";
 
 class Command {
   constructor(_argv) {
@@ -215,6 +217,10 @@ class Command {
 
     if (gitRequired && !isGitInitialized(this.project.rootPath)) {
       throw new ValidationError("ENOGIT", "The git binary was not found, or this is not a git repository.");
+    }
+
+    if (gitRequired && !isGitVersionSatisfied(this.project.rootPath, MINIMUM_GIT_VERSION)) {
+      throw new ValidationError("EGITVERSION", `git version >= ${MINIMUM_GIT_VERSION} is required.`);
     }
 
     if (!this.project.manifest) {

@@ -40,7 +40,9 @@
     "clone-deep": "^4.0.1",
     "dedent": "^0.7.0",
     "execa": "^1.0.0",
+    "find-versions": "^3.2.0",
     "is-ci": "^2.0.0",
-    "npmlog": "^4.1.2"
+    "npmlog": "^4.1.2",
+    "semver": "^6.2.0"
   }
 }
