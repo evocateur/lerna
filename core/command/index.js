@@ -2,7 +2,6 @@
 
 const cloneDeep = require("clone-deep");
 const dedent = require("dedent");
-const execa = require("execa");
 const log = require("npmlog");
 const os = require("os");
 
@@ -13,6 +12,7 @@ const ValidationError = require("@lerna/validation-error");
 
 const cleanStack = require("./lib/clean-stack");
 const defaultOptions = require("./lib/default-options");
+const { isGitInitialized } = require("./lib/is-git-initialized");
 const logPackageError = require("./lib/log-package-error");
 const warnIfHanging = require("./lib/warn-if-hanging");
 
@@ -210,20 +210,10 @@ class Command {
     }
   }
 
-  gitInitialized() {
-    const opts = {
-      cwd: this.project.rootPath,
-      // don't throw, just want boolean
-      reject: false,
-      // only return code, no stdio needed
-      stdio: "ignore",
-    };
-
-    return execa.sync("git", ["rev-parse"], opts).code === 0;
-  }
-
   runValidations() {
-    if ((this.options.since !== undefined || this.requiresGit) && !this.gitInitialized()) {
+    const gitRequired = this.options.since !== undefined || this.requiresGit;
+
+    if (gitRequired && !isGitInitialized(this.project.rootPath)) {
       throw new ValidationError("ENOGIT", "The git binary was not found, or this is not a git repository.");
     }
 
