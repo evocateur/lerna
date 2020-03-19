@@ -3,7 +3,16 @@
 const figgyPudding = require("figgy-pudding");
 const PackageGraph = require("@lerna/package-graph");
 
+/**
+ * @typedef {object} QueryGraphOptions
+ * @property {'allDependencies' | 'dependencies'} [graphType] Defaults to "allDependencies",
+ *    "dependencies" excludes devDependencies from the graph
+ * @property {boolean} [forceLocal] Force local resolution of dependencies regardless of non-matching semver
+ * @property {boolean} [rejectCycles] Reject when cycles encountered
+ */
 const QueryGraphConfig = figgyPudding({
+  "force-local": {},
+  forceLocal: "force-local",
   "graph-type": {},
   graphType: "graph-type",
   "reject-cycles": {},
@@ -15,18 +24,18 @@ class QueryGraph {
    * A mutable PackageGraph used to query for next available packages.
    *
    * @param {Array<Package>} packages An array of Packages to build the graph out of
-   * @param {String} [opts.graphType="allDependencies"] "dependencies" excludes devDependencies from graph
-   * @param {Boolean} [opts.rejectCycles] Whether or not to reject cycles
+   * @param {QueryGraphOptions} [opts]
    * @constructor
    */
   constructor(packages, opts) {
-    const options = QueryGraphConfig(opts);
+    /** @type {QueryGraphOptions} */
+    const { forceLocal, graphType, rejectCycles } = QueryGraphConfig(opts);
 
     // Create dependency graph
-    this.graph = new PackageGraph(packages, options.graphType);
+    this.graph = new PackageGraph(packages, graphType, forceLocal);
 
     // Evaluate cycles
-    this.cycles = this.graph.collapseCycles(options.rejectCycles);
+    this.cycles = this.graph.collapseCycles(rejectCycles);
   }
 
   _getNextLeaf() {
@@ -76,9 +85,7 @@ module.exports.toposort = toposort;
  * Sort the input list topologically.
  *
  * @param {!Array.<Package>} packages An array of Packages to build the list out of
- * @param {Object} [options]
- * @param {Boolean} options.graphType "allDependencies" or "dependencies", which excludes devDependencies
- * @param {Boolean} options.rejectCycles Whether or not to reject cycles
+ * @param {QueryGraphOptions} [opts]
  *
  * @returns {Array<Package>} a list of Package instances in topological order
  */

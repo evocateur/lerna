@@ -153,6 +153,7 @@ class RunCommand extends Command {
 
     let chain = runTopologically(this.packagesWithScript, runner, {
       concurrency: this.concurrency,
+      forceLocal: this.options.forceLocal,
       rejectCycles: this.options.rejectCycles,
     });
 

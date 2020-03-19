@@ -558,6 +558,7 @@ class VersionCommand extends Command {
     chain = chain.then(() =>
       runTopologically(this.packagesToVersion, mapUpdate, {
         concurrency: this.concurrency,
+        forceLocal: this.options.forceLocal,
         rejectCycles: this.options.rejectCycles,
       })
     );

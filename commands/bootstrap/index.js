@@ -266,6 +266,7 @@ class BootstrapCommand extends Command {
     const runner = this.toposort
       ? runTopologically(this.filteredPackages, mapPackageWithScript, {
           concurrency: this.concurrency,
+          forceLocal: this.options.forceLocal,
           rejectCycles: this.options.rejectCycles,
         })
       : pMap(this.filteredPackages, mapPackageWithScript, { concurrency: this.concurrency });

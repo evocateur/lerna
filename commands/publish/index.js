@@ -619,6 +619,7 @@ class PublishCommand extends Command {
     // we don't respect --no-sort here, sorry
     return runTopologically(this.packagesToPublish, mapper, {
       concurrency: this.concurrency,
+      forceLocal: this.options.forceLocal,
       rejectCycles: this.options.rejectCycles,
       // By default, do not include devDependencies in the graph because it would
       // increase the chance of dependency cycles, causing less-than-ideal order.

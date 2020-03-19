@@ -261,7 +261,7 @@ class Command {
 
     chain = chain.then(() => this.project.getPackages());
     chain = chain.then(packages => {
-      this.packageGraph = new PackageGraph(packages);
+      this.packageGraph = new PackageGraph(packages, this.options.graphType, this.options.forceLocal);
     });
 
     return chain;

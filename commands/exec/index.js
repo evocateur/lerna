@@ -145,6 +145,7 @@ class ExecCommand extends Command {
 
     let chain = runTopologically(this.filteredPackages, runner, {
       concurrency: this.concurrency,
+      forceLocal: this.options.forceLocal,
       rejectCycles: this.options.rejectCycles,
     });
 

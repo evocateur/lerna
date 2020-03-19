@@ -10,6 +10,8 @@ const TopologicalConfig = figgyPudding({
   // p-queue options
   concurrency: {},
   // query-graph options
+  "force-local": {},
+  forceLocal: "force-local",
   "graph-type": {},
   graphType: "graph-type",
   "reject-cycles": {},
@@ -27,10 +29,10 @@ const TopologicalConfig = figgyPudding({
  * @returns {Promise<Array<*>>} when all executions complete
  */
 function runTopologically(packages, runner, opts) {
-  const { concurrency, graphType, rejectCycles } = TopologicalConfig(opts);
+  const { concurrency, forceLocal, graphType, rejectCycles } = TopologicalConfig(opts);
 
   const queue = new PQueue({ concurrency });
-  const graph = new QueryGraph(packages, { graphType, rejectCycles });
+  const graph = new QueryGraph(packages, { graphType, forceLocal, rejectCycles });
 
   return new Promise((resolve, reject) => {
     const returnValues = [];
